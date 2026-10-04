@@ -1,124 +1,116 @@
-const { test, expect } = require('../fixtures/testFixtures');
+import { test, expect } from '@playwright/test';
+test.setTimeout(60000);
 
-const testData = require('../test-data/testData');
+import { ProductsPage } from '../pages/ProductsPage.js';
+import { CheckoutPage } from '../pages/CheckoutPage.js';
 
-test.describe('SauceDemo End-to-End Checkout', () => {
+test(
+  'SauceDemo E-Commerce End-to-End - select products and checkout',
+  async ({ page }) => {
 
-    test('Complete product purchase successfully @smoke @regression', async ({
-        page,
-        loginPage,
-        productsPage,
-        cartPage,
-        checkoutPage
-    }) => {
+    const productsPage = new ProductsPage(page);
+    const checkoutPage = new CheckoutPage(page);
 
-        await test.step('Launch application', async () => {
+    // -----------------------------------
+    // Open Catalog
+    // -----------------------------------
 
-            await loginPage.open();
+    await page.goto(
+      'https://sauce-demo.myshopify.com/collections/all',
+      {
+        waitUntil: 'domcontentloaded'
+      }
+    );
 
-            await expect(page).toHaveTitle(
-                'Swag Labs'
-            );
-        });
+    // -----------------------------------
+    // Add Black heels
+    // -----------------------------------
 
-        await test.step('Login', async () => {
+    await productsPage.selectProductByName('Black heels');
 
-            await loginPage.login(
-                testData.validUser.username,
-                testData.validUser.password
-            );
+    await productsPage.addToCart();
 
-            await expect(page).toHaveURL(
-                /inventory/
-            );
-        });
+    // -----------------------------------
+    // Go back to Catalog
+    // -----------------------------------
 
-        await test.step('Verify successful login', async () => {
+    await productsPage.goToCatalog();
 
-            const title =
-                await productsPage.verifyProductsPage();
+    // -----------------------------------
+    // Add Bronze sandals
+    // -----------------------------------
 
-            await expect(title).toBe('Products');
-        });
+    await productsPage.selectProductByName('Bronze sandals');
 
-        await test.step('Select product', async () => {
+    await productsPage.addToCart();
 
-            await productsPage.selectProduct(
-                testData.product.name
-            );
-        });
+    // -----------------------------------
+    // Go back to Catalog
+    // -----------------------------------
 
-        await test.step('Verify product added to cart', async () => {
+    await productsPage.goToCatalog();
 
-            const cartCount =
-                await productsPage.getCartCount();
+    // -----------------------------------
+    // Click Check Out directly
+    // -----------------------------------
 
-            await expect(cartCount).toBe('1');
-        });
-
-        await test.step('Open cart', async () => {
-
-            await productsPage.openCart();
-
-            await expect(page).toHaveURL(
-                /cart/
-            );
-        });
-
-        await test.step('Verify cart details', async () => {
-
-            const productVisible =
-                await cartPage.verifyProduct(
-                    testData.product.name
-                );
-
-            await expect(productVisible).toBeTruthy();
-        });
-
-        await test.step('Proceed to checkout', async () => {
-
-            await cartPage.checkout();
-
-            await expect(page).toHaveURL(
-                /checkout-step-one/
-            );
-        });
-
-        await test.step('Enter customer details', async () => {
-
-            await checkoutPage.enterCustomerDetails(
-                testData.checkoutUser.firstName,
-                testData.checkoutUser.lastName,
-                testData.checkoutUser.postalCode
-            );
-        });
-
-        await test.step('Continue checkout', async () => {
-
-            await checkoutPage.continueCheckout();
-
-            await expect(page).toHaveURL(
-                /checkout-step-two/
-            );
-        });
-
-        await test.step('Complete checkout', async () => {
-
-            await checkoutPage.completeOrder();
-        });
-
-        await test.step('Verify order confirmation', async () => {
-
-            const confirmation =
-                await checkoutPage.getConfirmationMessage();
-
-            await expect(confirmation).toBe(
-                'Thank you for your order!'
-            );
-
-            await expect(page).toHaveURL(
-                /checkout-complete/
-            );
-        });
-    });
+    await productsPage.clickCheckout();
+const checkoutButton = page.getByRole('button', {
+  name: 'Check Out'
 });
+
+await expect(checkoutButton).toBeVisible({
+  timeout: 15000
+});
+
+await checkoutButton.click();
+
+await page.waitForTimeout(5000);
+    // -----------------------------------
+    // Click Check Out on checkout/cart
+    // -----------------------------------
+
+    /*const checkoutButton = page.getByRole('button', {
+      name: 'Check Out'
+    });
+
+    await expect(checkoutButton).toBeVisible();
+
+    await checkoutButton.click();*/
+
+    // -----------------------------------
+    // Customer details
+    // -----------------------------------
+
+    await checkoutPage.fillCustomerDetails({
+      email: 'pan@gmail.com',
+      firstName: 'Pan',
+      lastName: 'SP',
+      address: '21 abc',
+      city: 'bangalore',
+      postalCode: '560077'
+    });
+
+    // -----------------------------------
+    // Payment
+    // -----------------------------------
+
+    await checkoutPage.fillPaymentDetails({
+      cardNumber: '1',
+      expiryDate: '09 / 27',
+      cvv: '123'
+    });
+
+    await checkoutPage.submitPayment();
+
+    // -----------------------------------
+    // Verify successful payment
+    // -----------------------------------
+
+    await expect(
+      page.getByRole('heading', {
+        name: 'Thank you, Pan!'
+      })
+    ).toBeVisible();
+  }
+);

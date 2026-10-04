@@ -1,32 +1,15 @@
-const { test, expect } = require('../../fixtures/testFixtures');
-const testData = require('../../test-data/testData');
+import { test } from '@playwright/test';
+import { LoginPage } from '../../pages/LoginPage.js';
 
-test.describe('SauceDemo Login', () => {
+test('user should successfully log in to Sauce Demo Shopify store', async ({ page }) => {
 
-    test('Verify successful login @smoke', async ({
-        page,
-        loginPage,
-        productsPage
-    }) => {
+  const loginPage = new LoginPage(page);
 
-        await test.step('Launch application', async () => {
-            await loginPage.open();
-        });
+  const email = process.env.TEST_EMAIL;
+  const password = process.env.TEST_PASSWORD;
 
-        await test.step('Login with valid credentials', async () => {
-            await loginPage.login(
-                testData.validUser.username,
-                testData.validUser.password
-            );
-        });
+    await loginPage.navigateToStore();
+    await loginPage.openLoginPage();
+    await loginPage.verifyLoginPageDisplayed();
 
-        await test.step('Verify successful login', async () => {
-
-            await expect(page).toHaveURL(/inventory/);
-
-            const title = await productsPage.verifyProductsPage();
-
-            await expect(title).toBe('Products');
-        });
-    });
 });

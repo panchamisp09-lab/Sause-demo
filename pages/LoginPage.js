@@ -1,28 +1,73 @@
+const { expect } = require('@playwright/test');
+
 class LoginPage {
 
-    constructor(page) {
-        this.page = page;
+  constructor(page) {
 
-        this.usernameInput = page.locator('#user-name');
-        this.passwordInput = page.locator('#password');
-        this.loginButton = page.locator('#login-button');
+    this.page = page;
 
-        this.errorMessage = page.locator('[data-test="error"]');
-    }
+    this.loginNavLink = page.getByRole('link', { name: 'Log In' });
 
-    async open() {
-        await this.page.goto('/');
-    }
+    this.emailInput = page.getByRole('textbox', { name: 'Email Address' });
 
-    async login(username, password) {
-        await this.usernameInput.fill(username);
-        await this.passwordInput.fill(password);
-        await this.loginButton.click();
-    }
+    this.passwordInput = page.getByRole('textbox', { name: 'Password' });
 
-    async getErrorMessage() {
-        return await this.errorMessage.textContent();
-    }
+    this.signInButton = page.getByRole('button', { name: 'Sign In' });
+  }
+
+  async navigateToStore() {
+
+    await this.page.goto(
+      'https://sauce-demo.myshopify.com/',
+      {
+        waitUntil: 'domcontentloaded'
+      }
+    );
+
+    await expect(this.page).toHaveURL(
+      /sauce-demo\.myshopify\.com/
+    );
+  }
+
+  async openLoginPage() {
+
+    await expect(this.loginNavLink).toBeVisible();
+
+    await this.loginNavLink.click();
+
+    await expect(this.page).toHaveURL(
+      /account\/login/
+    );
+  }
+
+  async login(email, password) {
+
+  console.log('EMAIL:', email);
+  console.log('PASSWORD:', password);
+
+  await this.emailInput.fill(email);
+  await this.passwordInput.fill(password);
+
+  await this.signInButton.click();
+
+  await this.page.waitForTimeout(2000);
+
+  console.log('AFTER LOGIN URL:', this.page.url());
+
+  console.log('PAGE TITLE:', await this.page.title());
+
+  console.log(
+    'BODY TEXT:',
+    await this.page.locator('body').innerText()
+  );
 }
 
-module.exports = LoginPage;
+  async verifyLoginPageDisplayed() {
+  await expect(this.page).toHaveURL(/account\/login/);
+  await expect(this.emailInput).toBeVisible();
+  await expect(this.passwordInput).toBeVisible();
+  await expect(this.signInButton).toBeVisible();
+}
+}
+
+module.exports = { LoginPage };

@@ -1,23 +1,26 @@
 const testData = {
     validUser: {
-        username: process.env.SAUCE_USERNAME,
-        password: process.env.SAUCE_PASSWORD
+        email: 'Pan@gmail.com',
+        password: 'Admin@1234'
     },
 
-    invalidUser: {
-        username: 'invalid_user',
-        password: 'invalid_password'
+    checkoutDetails: {
+        firstName: 'Pan',
+        lastName: 'xyz',
+        address: 'bangalore',
+        postalCode: '560077'
     },
 
-    checkoutUser: {
-        firstName: 'Panchami',
-        lastName: 'Test',
-        postalCode: '560001'
+    paymentDetails: {
+        cardNumber: '1',
+        expiryDate: '02 / 27',
+        cvv: '123'
     },
 
-    product: {
-        name: 'Sauce Labs Backpack'
-    }
+    productsToBuy: [
+        'Grey jacket',
+        'Bronze sandals'
+    ]
 };
 
 module.exports = testData;

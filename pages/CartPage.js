@@ -1,27 +1,33 @@
+const { expect } = require('@playwright/test');
+
 class CartPage {
 
-    constructor(page) {
-        this.page = page;
+  constructor(page) {
 
-        this.pageTitle = page.locator('.title');
-        this.cartItems = page.locator('.cart_item');
-        this.checkoutButton = page.getByRole('button', {
-            name: 'Checkout'
-        });
-    }
+    this.page = page;
 
-    async verifyProduct(productName) {
+    this.checkoutButton = page.getByRole('button', {
+      name: 'Check Out'
+    });
+  }
 
-        const product = this.cartItems.filter({
-            hasText: productName
-        });
+  async verifyCartItems() {
 
-        return await product.isVisible();
-    }
+    await expect(
+      this.page.getByText('Black heels', { exact: true })
+    ).toBeVisible();
 
-    async checkout() {
-        await this.checkoutButton.click();
-    }
+    await expect(
+      this.page.getByText('Bronze sandals', { exact: true })
+    ).toBeVisible();
+  }
+
+  async proceedToCheckout() {
+
+    await expect(this.checkoutButton).toBeVisible();
+
+    await this.checkoutButton.click();
+  }
 }
 
-module.exports = CartPage;
+module.exports = { CartPage };
